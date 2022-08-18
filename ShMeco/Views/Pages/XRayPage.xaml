@@ -1,0 +1,144 @@
+﻿<Page
+    x:Class="ArionCameraXrayDefender.Views.Pages.XRayPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:arionControls="clr-namespace:ArionControlLibrary;assembly=ArionControlLibrary"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="XRayPage"
+    Width="410"
+    Height="250"
+    Background="#DFE5F3"
+    IsEnabled="True"
+    Loaded="XRayPage_OnLoaded"
+    mc:Ignorable="d">
+
+    <Border BorderThickness="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="50" />
+            </Grid.RowDefinitions>
+
+            <!--  Верхняя панель  -->
+            <Border>
+                <Grid Name="GrXray">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="2*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!--  Панель с показаниями кВ  -->
+                        <arionControls:DisplayBlockCounterUsCn
+                            x:Name="ControlKv"
+                            Grid.Column="0"
+                            Delta="1"
+                            Max="200"
+                            Min="10"
+                            SendChange="ControlKv_OnSendChange"
+                            Step="1"
+                            ValueString="kV"
+                            Value="20" />
+                        <!--  Панель с показаниями мА  -->
+                        <arionControls:DisplayBlockCounterUsCn
+                            x:Name="ControlMa"
+                            Grid.Column="1"
+                            Delta="0.1"
+                            Max="10"
+                            Min="1"
+                            SendChange="ControlMa_OnSendChange"
+                            Step="0.1"
+                            ValueString="mA" />
+                        <!--  Панель с показателями времени  -->
+                        <arionControls:TimeUserControl
+                            x:Name="ControlTime"
+                            Grid.Column="2"
+                            Delta="6"
+                            Max="600"
+                            Min="0"
+                            SendChange="ControlTime_OnSendChange"
+                            Step="6"
+                            Value="0" />
+                    </Grid>
+
+                    <!--  Панель с кнопками  -->
+                    <Grid
+                        Grid.Row="0"
+                        Margin="10,10,10,0"
+                        VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            Name="BtnStart"
+                            Width="115"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Click="BtnXrOn_Click"
+                            Content="Старт"
+                            FontSize="16" />
+
+                        <Image
+                            Grid.Column="1"
+                            Width="80"
+                            Height="65"
+                            Margin="0,-10,0,0"
+                            gif:ImageBehavior.AnimatedSource="../../Resource/Images/Гиф-сура 1.gif"
+                            Visibility="Collapsed" />
+                        <Image
+                            Grid.Column="1"
+                            Width="42"
+                            Margin="0,-9,0,0"
+                            Source="{StaticResource Kind_XrayIconDrawingImage}"
+                            Visibility="Visible" />
+
+                        <Button
+                            Name="BtnStop"
+                            Grid.Column="2"
+                            Width="115"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Click="BtnXrayOff_Click"
+                            Content="Стоп"
+                            FontSize="16" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!--  Нижняя панель  -->
+            <Border
+                Grid.Row="1"
+                Grid.ColumnSpan="7"
+                Padding="0"
+                Style="{StaticResource StatusBar}">
+                <Grid>
+                    <Label
+                        x:Name="LabelStatus"
+                        Margin="5,5,55,5"
+                        VerticalAlignment="Center"
+                        Content="Рентген не найден"
+                        FontSize="16"
+                        Style="{StaticResource BlueLabelTransparentBackground}" />
+                    <Button
+                        Name="BtnTraining"
+                        Width="48"
+                        Height="48"
+                        HorizontalAlignment="Right"
+                        Click="BtnTraining_OnClick">
+                        <Image Source="{StaticResource Kind_Warm_upDrawingImage}" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Page>

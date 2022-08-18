@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arion", "ShMeco\Arion.csproj", "{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug32Bit|Any CPU = Debug32Bit|Any CPU
+		Debug32Bit|x64 = Debug32Bit|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug|x64.Build.0 = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug32Bit|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug32Bit|Any CPU.Build.0 = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug32Bit|x64.ActiveCfg = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Debug32Bit|x64.Build.0 = Debug|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Release|x64.ActiveCfg = Release|Any CPU
+		{ED5B6AFD-5D91-45F4-90DD-F84EE3E6B753}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2B87097E-3357-4845-B1B5-95CD4CD06E76}
+	EndGlobalSection
+EndGlobal

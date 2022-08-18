@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<ProgramInfoDataSource>
+  <name>1. Программа</name>
+  <steps>
+    <Step>
+      <id>1</id>
+      <y>0</y>
+      <u>0</u>
+      <v>0</v>
+      <mA>0</mA>
+      <kV>0</kV>
+      <timing>0</timing>
+	</Step>
+      <Step>
+      <id>2</id>
+      <y>10</y>
+      <u>0</u>
+      <v>0</v>
+      <mA>2</mA>
+      <kV>20</kV>
+      <timing>0</timing>
+	</Step>
+  </steps>
+</ProgramInfoDataSource>
+<ProgramInfoDataSource>
+  <name>2. Программа</name>
+  <steps>
+    <Step>
+      <id>1</id>
+      <y>0</y>
+      <u>0</u>
+      <v>0</v>
+      <mA>0</mA>
+      <kV>0</kV>
+      <timing>0</timing>
+	</Step>
+      <Step>
+      <id>2</id>
+      <y>10</y>
+      <u>0</u>
+      <v>0</v>
+      <mA>2</mA>
+      <kV>20</kV>
+      <timing>0</timing>
+	</Step>
+  </steps>
+</ProgramInfoDataSource>
+</>

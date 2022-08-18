@@ -1,0 +1,532 @@
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Controls;
+using System.Windows.Threading;
+using System.Windows.Media.Imaging;
+using System.Xml.Serialization;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO.Ports;
+using Modbus.Device;
+using System.Net.Sockets;
+using System.Collections;
+using STRAZH_LIB;
+
+namespace ShMeco
+{
+    /// <summary>
+    /// Логика взаимодействия для MainWindow.xaml
+    /// </summary>
+    /// 
+
+    public partial class MainWindow : Window
+    {
+        //private DispatcherTimer SafetyCheckTimer;
+        //private DispatcherTimer UITimer;
+
+        private App theApp = null;
+        private Thread run = null;
+
+        private bool mustQuit = false;
+
+        private ObservableCollection<ProgramInfoDataSource> progs = new ObservableCollection<ProgramInfoDataSource> { };
+
+        private const string file = "progs.xml";
+
+        SerialPort MB = new SerialPort("COM2", 115200, Parity.None, 8, StopBits.One);
+        ModbusSerialMaster Master_MB = null;
+
+        string ipAddress = "192.168.88.140"; // default
+        int tcpPort = 502;                  // default
+
+        TcpClient tcpClient;                //Create a new TcpClient object.
+        ModbusIpMaster master;//
+
+        XRay xRay = null;
+
+        bool MB_open = false;
+
+
+        private bool mustExitMBMaster = false;
+        //private bool connectRequired = true;
+        public bool getToPosition = false;
+
+        byte Step_Slave = 1;
+        ushort[] StepErr, StepActPos;
+        ushort Function = 1;
+        ushort Step_PositionH = 0, Step_PositionL = 0;// Позиция для передачи в привод
+        ushort Step_speed;// Вычисляеммая скорость  для привода
+        ushort Acc = 2500, Dec = 1500; // Ускорениеб замедление привода
+        ushort SusTime = 1;
+        ushort SpecParam = 16;
+        int Step_ZadPos, StepActualPosition;
+        int Step_SpeedRatio = 30;             // default 
+        int Step_NOMspeed = 300;// номинальная скорость привода
+
+        // Флаги, что во время чтения не произошло зависания, и можно вызывать функции по таймеру
+       bool may_read = false;      // Rtu
+        bool may_read_TCP = false;  // TCP
+
+        STRAZHADAPTER sAdapt;
+        private DispatcherTimer UpdTimer = new DispatcherTimer();
+        int upd_delay = 300;
+        private bool flag = true;
+
+        public MainWindow(App ref_app)
+        {
+            theApp = ref_app;
+            sAdapt = new STRAZHADAPTER();
+            InitializeComponent();
+        }
+
+        private void mainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Запускаем окно рентгена
+                xRay = new XRay(theApp);
+                xRay.StartUpdate();
+                xRay.Owner = this;
+                xRay.Show();
+            }
+            catch (Exception ex)
+            {
+                lbl_Err.Content = ex.Message;
+            }
+            try
+            {
+                MB.Open();
+                MB_open = true;
+                Master_MB = ModbusSerialMaster.CreateRtu(MB);
+
+                reading = new Thread(Read_MB);
+                reading.SetApartmentState(ApartmentState.STA);
+                reading.Name = "Reading data";
+                reading.Start();
+            }
+            catch
+            {
+                lbl_Err.Content = "Ошибка COM-порта Modbus";
+            }
+
+            try
+            {
+                if (MB_open)
+                {
+                    tcpClient = new TcpClient();
+                    tcpClient.BeginConnect(ipAddress, tcpPort, null, null);
+                    master = ModbusIpMaster.CreateIp(tcpClient);
+                    may_read_TCP = true;
+                }
+            }
+            catch (Exception)
+            {
+                lbl_Err.Content = "Ошибка подключения TCP/IP";
+            }
+
+            try
+            {
+                StartUpdate();
+                // Заполняет список программ
+                ReadData();
+                cmBoxProgs.ItemsSource = progs;
+            }
+            catch (Exception ex)
+            {
+                lblCycleMsg.Content = "Данные не считаны\n" + ex;
+            }
+
+            try
+            {
+                sAdapt.Run();
+            }
+            catch (Exception ex)
+            {
+                lblCycleMsg.Content = "Не удалось запустить программу 'Стражник'\n" + ex;
+            }
+
+            
+
+        }
+
+        private void UpdTimer_Tick(object sender, EventArgs e)
+        {
+            if (master == null && flag)
+            {
+                grdManip.IsEnabled = btnCycleStart.IsEnabled = btnCyclePause.IsEnabled = false;
+                lbl_Err.Content = "Нет связи с шаговым двигателем.";
+            }
+            else
+            {
+                lbl_Err.Content = "";
+
+                grdManip.IsEnabled = btnCycleStart.IsEnabled = btnCyclePause.IsEnabled = true;
+            }
+
+            if (may_read)
+                Read_MB();
+
+            if (may_read_TCP)
+                Read_TCP();
+        }
+
+        public void StartUpdate()
+        {
+            UpdTimer.Interval = TimeSpan.FromMilliseconds(upd_delay);
+            UpdTimer.Tick += UpdTimer_Tick;
+            UpdTimer.IsEnabled = true;
+        }
+
+        // Открытие списка программ
+        private void BtnProgs_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.OwnedWindows.Count > 1)
+                return;
+            Programs listOfProgs = new Programs(ref progs);
+            listOfProgs.Owner = this;
+            listOfProgs.Show();
+        }
+
+        private void BtnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Normal)
+            {
+                this.WindowState = WindowState.Minimized;
+            }
+        }
+
+        // Сохранение новой программы и изменений 
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            saveFile();
+        }
+
+        private void saveFile()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<ProgramInfoDataSource>));
+            TextWriter writer = new StreamWriter(file);
+            serializer.Serialize(writer, progs);
+            writer.Close();
+        }
+
+        // Считывание всех программ из xml файла в список программ progs
+        public void ReadData()
+        {
+            string file = "progs.xml";
+            // Если файла нет, то создается пустой файл
+            if (!File.Exists(file))
+            {
+                //File.Create(file).Close();
+                saveFile();
+            }
+
+            XmlSerializer xml = new XmlSerializer(typeof(ObservableCollection<ProgramInfoDataSource>));
+            try
+            {
+                using (Stream fStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    progs = (ObservableCollection<ProgramInfoDataSource>)xml.Deserialize(fStream);
+                    fStream.Close();
+                }
+            }
+            catch (InvalidOperationException e)
+            {
+                MessageBox.Show("Поврежденный файл Программ. " + e);
+                //throw e;
+            }
+
+            catch (FileNotFoundException e)
+            {
+                MessageBox.Show(file + " не существует. " + e);
+                //throw e;
+            }
+        }
+
+        private void mainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            mustQuit = mustExitMBMaster = true;
+        }
+
+        private void mainWindow_Closed(object sender, EventArgs e)
+        {
+            UpdTimer.IsEnabled = false;
+            mustQuit = true;
+            this.Dispatcher.InvokeShutdown();
+        }
+
+        private void btnExit_Click(object sender, RoutedEventArgs e)
+        {
+            xRay.Close();
+            tcpClient?.Close();
+            if (!stop)
+                stop = true;
+            Thread.Sleep(500);
+            Close();
+        }
+
+        // Для доступа к индексу из потока
+        private int idx = 0;
+        private bool stop = false;
+        private ProgramInfoDataSource item = null;
+
+        // Роботизированный цикл
+        private void RunCycle(object sender, RoutedEventArgs e)
+        {
+            flag = false;
+            item = cmBoxProgs.SelectedItem as ProgramInfoDataSource;
+            if (item == null)
+                return;
+
+            btnCycleStart.IsEnabled = stop = false;
+            // Находим индекс программы и запускаем её выполнение в отдельном потоке
+
+            run = new Thread(Run);
+            run.SetApartmentState(ApartmentState.STA);
+            run.Name = "Acquire video 2";
+            run.Start();
+        }
+
+        // Функция рoботизированного цикла, запускаемое в отдельном потоке
+        private void Run()
+        {
+            sAdapt.ServerConnect();
+            bool startSnap = false;
+            int cntSnap = 0;
+
+            try
+            {
+
+
+            for (int i = 0; i < item?.Count && !stop; ++i)
+            {
+                getToPosition = false;
+
+                int j = 0;
+                sAdapt.Snap();
+
+                while (!getToPosition && ++j < 30)
+                {                    
+                    Thread.Sleep(1000);
+                }
+
+                if (sAdapt.Command == V01.SDK_NOTIFY_IMAGE_READY)
+                {
+                    cntSnap++;
+                    if (cntSnap == 2)
+                        break;
+                }
+            }
+            Thread.Sleep(4000);
+            btnCycleStart.Dispatcher.BeginInvoke(new Action(() => btnCycleStart.IsEnabled = true));
+                        return;
+                    }
+            }
+            btnCycleStart.Dispatcher.BeginInvoke(new Action(() => btnCycleStart.IsEnabled = true));
+            stop = true;
+          }
+          catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        // Полная остановка цикла
+        private void StopCycle(object sender, RoutedEventArgs e)
+        {
+            btnCycleStart.IsEnabled = stop = true;
+        }
+
+        #region ModbusRTU
+
+        public void Read_TCP()
+        {
+            ushort r1 = 1, r2 = 2;
+            may_read_TCP = false;
+                try
+                {
+                    // опрос шагового двигателя
+                    StepErr = master.ReadHoldingRegisters(Step_Slave, 8707, r1);
+                    StepActPos = master.ReadHoldingRegisters(Step_Slave, 24620, r2);
+                StepActualPosition = ((ushort)StepActPos[0] << 16 | (ushort)StepActPos[1]) * 360 / 2592000;
+                grad.Dispatcher.BeginInvoke(new Action(() => grad.Content = StepActualPosition.ToString()));
+                    lbl_Err.Dispatcher.BeginInvoke(new Action(() => lbl_Err.Content = "Нет ошибок."));
+
+                    // Флаг, что функция не зависла
+                may_read_TCP = true;
+                }
+                catch (Exception e) { lbl_Err.Dispatcher.BeginInvoke(new Action(() => lbl_Err.Content = "Нет связи с шаговым двигателем")); }
+            }
+
+        public void Homing() // функция присвоения нуля шаговому двигателю
+        {
+            ushort add = 24578;
+master.WriteSingleRegister(Step_Slave, add, 33);
+        }
+
+        public void GotoPos() //функция перехода на позицию шаговым двигателем
+        {
+
+            ushort adr1 = 24578, adr2 = 25088, command1 = 16;
+            if (MB_open)
+            {
+                try
+                {
+                    byte[] bytes1 = BitConverter.GetBytes(Step_ZadPos * 400000 / 110);
+                    Step_PositionL = BitConverter.ToUInt16(bytes1, 0);
+                    Step_PositionH = BitConverter.ToUInt16(bytes1, 2);
+                    Step_speed = Convert.ToUInt16(Step_NOMspeed * Step_SpeedRatio / 100);
+                    master.WriteSingleRegister(Step_Slave, adr1, command1);
+                    master.WriteMultipleRegisters(Step_Slave, adr2, new ushort[] { Function, Step_PositionH, Step_PositionL, Step_speed, Acc, Dec, SusTime, SpecParam });
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+                //mustExitMBMaster = false;
+            }
+        }
+
+        private void moveGO(object sender, MouseButtonEventArgs e) // Движение шаговика по  нажатию кнопки
+        {
+            Button btn = sender as Button;
+            if (btn != null)
+            {
+                //mustExit = true;
+                string cap = btn.Name.ToString();
+                switch (cap)
+                {
+                    case "Yplus": { Step_ZadPos = 2000; } break;
+                    case "Yminus": { Step_ZadPos = -2000; } break;
+                }
+                GotoPos();
+            }
+        }
+
+        private void moveStop(object sender, MouseButtonEventArgs e) //Остановка шаговика при отпускании кнопки
+        {
+            Button btn = sender as Button;
+            if (btn != null)
+            {
+                //mustExit = true;
+                string cap = btn.Name.ToString();
+                ushort adr1 = 24578, command1 = 64;
+                switch (cap)
+                {
+                    case "Yplus": master.WriteSingleRegister(Step_Slave, adr1, command1); break;
+                    case "Yminus": master.WriteSingleRegister(Step_Slave, adr1, command1); break;
+                }
+                //mustExit = false;
+            }
+        }
+
+        //private void Button_Click(object sender, RoutedEventArgs e) // Нажатие кнопки перехода в 0
+        //{
+        //    Button btn = sender as Button;
+        //    if (btn != null)
+        //    {
+        //        mustExit = true;
+        //        string cap = btn.Name.ToString();
+
+        //        Step_ZadPos = 0;
+
+
+        //        GotoPos();
+        //    }
+        //}
+
+        #endregion
+
+        #region ModbusRTU
+
+        ushort[] PR200_Sost, PR200_RealH, PR100_Sost;
+        ushort PR200_TargetPos, PR100_Command;
+        byte PR100_Slave = 3;
+        byte PR200_Slave = 5;
+        bool XRAY, PreXRAY, EmergencyStop, Ready;
+        bool OpenDoor1, OpenDoor2, ErrDoor1, ErrDoor2, SearchPos;
+        bool LedGo, LedRtn, LedAuto, LedXrayOn, LedXreyOff, GoInPoint;
+
+        //bool[] bools = new bool[16] {LedGo, LedRtn, LedAuto, LedXrayOn, LedXreyOff, false, GoInPoint, false, false, false, false, false, false, false, false, false};
+        BitArray bitsost = new BitArray(16, false);
+
+
+        public bool GetOpenDoor1()
+        {
+            return OpenDoor1;
+        }
+
+        public bool GetOpenDoor2()
+        {
+            return OpenDoor2;
+        }
+
+        public bool GetEmergencyStop()
+        {
+            return EmergencyStop;
+        }
+
+        private void Read_MB()
+        {
+            ushort r1 = 1;
+            while (MB_open && Master_MB != null && !mustExitMBMaster)
+            {
+                try
+                {
+                    // Опрос контроллера камеры
+                    PR200_Sost = Master_MB.ReadHoldingRegisters(PR200_Slave, 513, r1);
+                    BitArray bitArray = new BitArray(BitConverter.GetBytes(PR200_Sost[0]));
+                    XRAY = bitArray[0];
+                    PreXRAY = bitArray[1];
+                    EmergencyStop = bitArray[2];
+                    Ready = bitArray[3];
+                    OpenDoor1 = bitArray[4];
+                    OpenDoor2 = bitArray[5];
+                    ErrDoor1 = bitArray[6];
+                    ErrDoor2 = bitArray[7];
+                    SearchPos = bitArray[8];
+
+                    PR200_RealH = Master_MB.ReadHoldingRegisters(PR200_Slave, 515, r1);
+                    height.Dispatcher.BeginInvoke(new Action(() => height.Content = PR200_RealH[0].ToString()));
+
+                    // Опрос Дополнительного контроллера
+                    //PR100_Sost = Master_MB.ReadHoldingRegisters(PR100_Slave, 513, r1);
+                    //BitArray bitArray100 = new BitArray(BitConverter.GetBytes(PR100_Sost[0]));
+                    //bool EmergencyStop100 = bitArray100[0];
+                    //bool AutoGo = bitArray100[1];
+                    isReady = true;
+                }
+                catch (Exception e)
+                {
+                    lbl_Err.Dispatcher.BeginInvoke(new Action(() => lbl_Err.Content = e.ToString()));
+                    mustExitMBMaster = true;
+                }
+                //Thread.Sleep(2500);
+            }
+        }
+
+        private void Send_MB_RTU()
+        {
+
+            Master_MB.WriteSingleRegister(PR200_Slave, 514, PR200_TargetPos);
+            Master_MB.WriteSingleRegister(PR200_Slave, 512, 2);
+
+            bitsost[0] = LedGo;
+            bitsost[1] = LedRtn;
+            bitsost[2] = LedAuto;
+            bitsost[3] = LedXrayOn;
+            bitsost[4] = LedXreyOff;
+            bitsost[6] = GoInPoint;
+            PR100_Command = Convert.ToUInt16(bitsost);
+            Master_MB.WriteSingleRegister(PR100_Slave, 512, PR100_Command);
+        }
+
+
+        #endregion
+    }
+}

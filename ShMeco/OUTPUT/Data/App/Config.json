@@ -1,0 +1,133 @@
+{
+  "General": { "SaveAllAcquiredImages": false },
+  "ProgramSettings":
+  {
+    "TableVelocity": 80,
+    "AutomaticCycleVelocity": 92,
+    "ManualCycleVelocity": 83,
+    "F1": 3,
+    "F2": 1,
+    "F3": 2,
+    "Button1Velocity": 2,
+    "Button2Velocity": 55,
+    "Button3Velocity": 100,
+    "ComPortXray": "COM1",
+    "ComPortController": "COM3",
+    "ComPortDoor1": "COM4",
+    "ComPortDoor2": "COM5",
+    "ComPortLoader": "COM6"
+  },
+  "XRay": { "Enabled": true, "LinkType": "COM1", "kV_Resolution": 1.0, "mA_Resolution": 0.1 },
+  "Levels":
+  {
+    "ToStartAutomaticCycle": 0,
+    "ToStartManualCycle": 0,
+    "ToCloseTheSoftware": 0,
+    "ToUseDiagnostics": 3,
+    "ToResetCounters": 2
+  },
+  "SensorCalibration": {
+    "ShowSettings": false,
+    "Enabled": false,
+    "CycleCounter": 0,
+    "offset":
+    {
+      "Name": "Offeset calibration",
+      "ShowSettings": false,
+      "Enabled": false,
+      "CycleFrequency": 0,
+      "RepeatEveryXHour": 0.0,
+      "LastExecutionTime": "2000-01-01T00:00:00",
+      "ExecuteAtFirstCycle": false,
+      "ExecutionDelayAfterSystemStartup": 0,
+      "ExecutionAfterSystemStartupDone": false,
+      "StartingkV": 80.0,
+      "StartingmA": 1.0,
+      "XRayVarPolicy": 0,
+      "XRayDelta": 0.1,
+      "RequiredSaturation": 50,
+      "RequiredSaturationStart": 50,
+      "RequiredSaturationEnd": 50,
+      "SaturationDelta": 10
+    },
+    "badpixel":
+    {
+      "Name": "Bad pixel calibration",
+      "ShowSettings": false,
+      "Enabled": false,
+      "CycleFrequency": 0,
+      "RepeatEveryXHour": 0.0,
+      "LastExecutionTime": "2000-01-01T00:00:00",
+      "ExecuteAtFirstCycle": false,
+      "ExecutionDelayAfterSystemStartup": 0,
+      "ExecutionAfterSystemStartupDone": false,
+      "StartingkV": 80.0,
+      "StartingmA": 1.0,
+      "XRayVarPolicy": 0,
+      "XRayDelta": 0.1,
+      "RequiredSaturation": 50,
+      "RequiredSaturationStart": 50,
+      "RequiredSaturationEnd": 50,
+      "SaturationDelta": 10
+    },
+    "gain":
+    {
+      "Name": "Gain calibration",
+      "ShowSettings": false,
+      "Enabled": false,
+      "CycleFrequency": 0,
+      "RepeatEveryXHour": 0.0,
+      "LastExecutionTime": "2000-01-01T00:00:00",
+      "ExecuteAtFirstCycle": false,
+      "ExecutionDelayAfterSystemStartup": 0,
+      "ExecutionAfterSystemStartupDone": false,
+      "StartingkV": 80.0,
+      "StartingmA": 1.0,
+      "XRayVarPolicy": 0,
+      "XRayDelta": 0.1,
+      "RequiredSaturation": 50,
+      "RequiredSaturationStart": 50,
+      "RequiredSaturationEnd": 50,
+      "SaturationDelta": 10
+    },
+    "badgainpixel":
+    {
+      "Name": "Bad gain pixel calibration",
+      "ShowSettings": false,
+      "Enabled": false,
+      "CycleFrequency": 0,
+      "RepeatEveryXHour": 0.0,
+      "LastExecutionTime": "2000-01-01T00:00:00",
+      "ExecuteAtFirstCycle": false,
+      "ExecutionDelayAfterSystemStartup": 0,
+      "ExecutionAfterSystemStartupDone": false,
+      "StartingkV": 80.0,
+      "StartingmA": 1.0,
+      "XRayVarPolicy": 0,
+      "XRayDelta": 0.1,
+      "RequiredSaturation": 50,
+      "RequiredSaturationStart": 50,
+      "RequiredSaturationEnd": 50,
+      "SaturationDelta": 10
+    },
+    "addbadgainpixel": {
+      "Name": "Add Bad gain pixel calibration",
+      "ShowSettings": false,
+      "Enabled": false,
+      "CycleFrequency": 0,
+      "RepeatEveryXHour": 0.0,
+      "LastExecutionTime": "2000-01-01T00:00:00",
+      "ExecuteAtFirstCycle": false,
+      "ExecutionDelayAfterSystemStartup": 0,
+      "ExecutionAfterSystemStartupDone": false,
+      "StartingkV": 80.0,
+      "StartingmA": 1.0,
+      "XRayVarPolicy": 0,
+      "XRayDelta": 0.1,
+      "RequiredSaturation": 50,
+      "RequiredSaturationStart": 30,
+      "RequiredSaturationEnd": 70,
+      "SaturationDelta": 10
+    }
+  }
+}

@@ -1,0 +1,28 @@
+﻿<Page
+    x:Class="ArionCameraXrayDefender.Views.Pages.VideoStreamPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ArionCameraXrayDefender.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="VideoStreamPage"
+    Width="410"
+    Height="410"
+    Style="{StaticResource PageStyle}"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Border
+            Margin="10"
+            Padding="0"
+            Background="Black"
+            ClipToBounds="True"
+            CornerRadius="5">
+            <Image
+                Name="Img"
+                Width="390"
+                Height="390"
+                Stretch="UniformToFill" />
+        </Border>
+    </Grid>
+</Page>

@@ -1,0 +1,357 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Modbus;
+using Modbus.Device;
+using System.Net;
+using System.Net.Sockets;
+using System.Windows.Threading;
+using System.Runtime.InteropServices;
+using System.IO;
+using System.Threading;
+
+namespace ShMeco
+{
+    /// <summary>
+    /// Логика взаимодействия для MModbusTCP.xaml
+    /// </summary>
+    public partial class MModbusTCP : Window
+    {
+        ushort[] Errors_1, Errors_2, Errors_3; // Ошибка привода
+        ushort[] Actualpos_1, Actualpos_2, Actualpos_3; //актуальная позиция привода
+        int upd_delay = 300;
+        ushort Function = 1;
+        int ZadPos1, ZadPos2, ZadPos3; // задаваемая позиция до преобразования
+        ushort PositionH_1 = 0, PositionL_1 = 0, PositionH_2 = 0, PositionL_2 = 0, PositionH_3 = 0, PositionL_3 = 0;// Позиция для передачи в привод
+        int NOMspeed_1 = 150, NOMspeed_2 = 150, NOMspeed_3 = 150;// номинальная скорость привода
+        ushort speed_1, speed_2, speed_3;// Вычисляеммая скорость  для привода
+        int SpeedRatio = 20;             // default 
+        
+        ushort Acc = 2500, Dec = 1500; // Ускорениеб замедление привода
+        ushort SusTime = 1;
+        ushort SpecParam = 16;
+        byte motor_1 = 1, motor_2 = 2, motor_3 = 3;
+        bool Sravnenie;
+
+        public static string Config_file = AppDomain.CurrentDomain.BaseDirectory + @"Config_eko.ini";
+        IniFile INI = new IniFile(Config_file);
+
+        string ipAddress = "192.168.1.140"; // default
+        int tcpPort = 502;                  // default
+
+        TcpClient tcpClient;                //Create a new TcpClient object.
+        ModbusIpMaster master;//
+
+        private DispatcherTimer UpdTimer = new DispatcherTimer();
+        private App theApp = null;
+
+        public MModbusTCP(App ref_app)
+        {
+            theApp = ref_app;
+            InitializeComponent();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                tcpClient = new TcpClient();
+                tcpClient.BeginConnect(ipAddress, tcpPort, null, null);
+                master = ModbusIpMaster.CreateIp(tcpClient);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Ошибка подключения");
+            }
+
+            StartUpdate();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            tcpClient.Close();
+        }
+
+
+        bool WrMotAll = false;
+        bool WrMot_1 = false, WrMot_2 = false, WrMot_3 = false;
+
+        private void moveGO(object sender, MouseButtonEventArgs e)
+        {
+            if (tcpClient.Connected)
+            {
+                Button btn = sender as Button;
+                if (btn != null)
+                {
+                    string cap = btn.Name.ToString();
+                    switch (cap)
+                    {
+                        case "Yplus": { PositionL_1 = 65535; WrMot_1 = true; } break;
+                        case "Uplus": { PositionL_2 = 65535; WrMot_2 = true; } break;
+                        case "Vplus": { PositionL_3 = 65535; WrMot_3 = true; } break;
+                        case "Yminus": { PositionL_1 = 0; WrMot_1 = true; } break;
+                        case "Uminus": { PositionL_2 = 0; WrMot_2 = true; } break;
+                        case "Vminus": { PositionL_3 = 0; WrMot_3 = true; } break;
+                    }
+                    GotoPos();
+                }
+            }
+        }
+
+
+        private void moveStop(object sender, MouseButtonEventArgs e)
+        {
+            WrMot_1 = false;
+            WrMot_2 = false;
+            WrMot_3 = false;
+
+            if (tcpClient.Connected)
+            {
+                Button btn = sender as Button;
+                if (btn != null)
+                {
+                    string cap = btn.Name.ToString();
+                    ushort adr1 = 24578, command1 = 64;
+                    switch (cap)
+                    {
+                        case "Yplus": master.WriteSingleRegister(motor_1, adr1, command1); break;
+                        case "Uplus": master.WriteSingleRegister(motor_2, adr1, command1); break;
+                        case "Vplus": master.WriteSingleRegister(motor_3, adr1, command1); break;
+                        case "Yminus": master.WriteSingleRegister(motor_1, adr1, command1); break;
+                        case "Uminus": master.WriteSingleRegister(motor_2, adr1, command1); break;
+                        case "Vminus": master.WriteSingleRegister(motor_3, adr1, command1); break;
+                    }
+                }
+            }
+        }
+
+        public void Read()
+        {
+            ushort r1 = 1;
+            try
+            {
+                Errors_1 = master.ReadHoldingRegisters(motor_1, 8707, r1);
+                Actualpos_1 = master.ReadHoldingRegisters(motor_1, 24621, r1);
+                Errors_2 = master.ReadHoldingRegisters(motor_2, 8707, r1);
+                Actualpos_2 = master.ReadHoldingRegisters(motor_2, 24621, r1);
+                Errors_3 = master.ReadHoldingRegisters(motor_3, 8707, r1);
+                Actualpos_3 = master.ReadHoldingRegisters(motor_3, 24621, r1);
+                this.Dispatcher.BeginInvoke(new Action(() => ActPos1.Content = Actualpos_1[0].ToString()));
+                this.Dispatcher.BeginInvoke(new Action(() => ActPos2.Content = Actualpos_2[0].ToString()));
+                this.Dispatcher.BeginInvoke(new Action(() => ActPos3.Content = Actualpos_3[0].ToString()));
+                this.Dispatcher.BeginInvoke(new Action(() => lbl_Err.Content = Errors_1[0].ToString()));
+
+                //if (Sravnenie==true)
+                //{
+                //    if (Actualpos_1[0] == PositionL_1) this.Dispatcher.BeginInvoke(new Action(() => statY.Content = "V")); else this.Dispatcher.BeginInvoke(new Action(() => statY.Content = "X"));
+                //    if (Actualpos_2[0] == PositionL_2) this.Dispatcher.BeginInvoke(new Action(() => statU.Content = "V")); else this.Dispatcher.BeginInvoke(new Action(() => statU.Content = "X"));
+                //    if (Actualpos_3[0] == PositionL_3) this.Dispatcher.BeginInvoke(new Action(() => statV.Content = "V")); else this.Dispatcher.BeginInvoke(new Action(() => statV.Content = "X"));
+                //}
+                //else Sravnenie = false;
+                    
+            }
+            catch (Exception)
+            {
+                this.Dispatcher.BeginInvoke(new Action(() => lbl_Err.Content = "Нет связи"));
+            }
+
+        }
+        public void Homing()
+        {
+            ushort add = 24578;
+            if (WrMot_1)
+                master.WriteSingleRegister(motor_1, add, 32);
+            else if(WrMot_2)
+                master.WriteSingleRegister(motor_2, add, 32);
+            else if (WrMot_3)
+                master.WriteSingleRegister(motor_3, add, 32);
+        }
+
+        public void GotoPos()
+        {
+
+            ushort adr1 = 24578, adr2 = 25088, command1 = 16;
+            if (tcpClient.Connected)
+            {
+                try
+                {
+                if (WrMot_1 || WrMotAll)
+                {
+                        speed_1 = Convert.ToUInt16((NOMspeed_1) * SpeedRatio / 100);
+                    master.WriteSingleRegister(motor_1, adr1, command1);
+                    master.WriteMultipleRegisters(motor_1, adr2, new ushort[] { Function, PositionH_1, PositionL_1, speed_1, Acc, Dec, SusTime, SpecParam });
+                }
+                if (WrMot_2 || WrMotAll)
+                {
+                        speed_2 = Convert.ToUInt16((NOMspeed_2) * SpeedRatio / 100);
+                    master.WriteSingleRegister(motor_2, adr1, command1);
+                    master.WriteMultipleRegisters(motor_2, adr2, new ushort[] { Function, PositionH_2, PositionL_2, speed_2, Acc, Dec, SusTime, SpecParam });
+                }
+                if (WrMot_3 || WrMotAll)
+                {
+                        speed_3 = Convert.ToUInt16((NOMspeed_3) * SpeedRatio / 100);
+                    master.WriteSingleRegister(motor_3, adr1, command1);
+                    master.WriteMultipleRegisters(motor_3, adr2, new ushort[] { Function, PositionH_3, PositionL_3, speed_3, Acc, Dec, SusTime, SpecParam });
+                }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+                WrMotAll = false;
+            }
+        }
+
+        private void UpdTimer_Tick(object sender, EventArgs e)
+        {
+            Read();
+        }
+
+        public void StartUpdate()
+        {
+            UpdTimer.Interval = TimeSpan.FromMilliseconds(upd_delay);
+            UpdTimer.Tick += UpdTimer_Tick;
+            UpdTimer.IsEnabled = true;
+        }
+
+
+
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null)
+            {
+                string cap = btn.Name.ToString();
+                switch (cap)
+                {
+                    case "Y0": WrMot_1 = true; break;
+                    case "U0": WrMot_2 = true; break;
+                    case "V0": WrMot_3 = true; break;
+                }
+                Homing();
+            }
+        }
+
+        //private void Button_Go(object sender, RoutedEventArgs e)
+        //{
+        //    // ZadPos1, ZadPos2, ZadPos3
+        //    ZadPos1 = Convert.ToInt32(Yzad.Text);
+        //    ZadPos2 = Convert.ToInt32(Uzad.Text);
+        //    ZadPos3 = Convert.ToInt32(Vzad.Text);
+        //    PositionL_1 = Convert.ToUInt16(ZadPos1 * 10);  //
+        //    PositionL_2 = Convert.ToUInt16(ZadPos2 * 100/4); // Преобразование заданной координаты
+        //    PositionL_3 = Convert.ToUInt16(ZadPos3 * 100/4); //
+        //    WrMotAll = true;  // разрешение на запись
+        //    GotoPos();
+
+        //    Sravnenie = true;
+        //}
+
+
+        public void Run(int ZadPos1, int ZadPos2, int ZadPos3)
+        {
+            //ZadPos1 - Y, ZadPos2 - U, ZadPos3 - V
+            PositionL_1 = Convert.ToUInt16(ZadPos1 * 10);  //
+            PositionL_2 = Convert.ToUInt16(ZadPos2 * 100 / 4); // Преобразование заданной координаты
+            PositionL_3 = Convert.ToUInt16(ZadPos3 * 100 / 4); //
+            WrMotAll = true;  // разрешение на запись
+            Dispatcher.BeginInvoke(new Action(() => ActPos1.Content = ZadPos1.ToString()));
+            Dispatcher.BeginInvoke(new Action(() => ActPos2.Content = ZadPos2.ToString()));
+            Dispatcher.BeginInvoke(new Action(() => ActPos3.Content = ZadPos3.ToString()));
+            GotoPos();
+        }
+
+        private void Button_Speed(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null)
+            {
+                string cap = btn.Name.ToString();
+                switch (cap)
+                {
+                    case "s20": SpeedRatio = 20; break;
+                    case "s50": SpeedRatio = 50; break;
+                    case "s100": SpeedRatio = 100; break;
+                    case "Sminus":
+                        {
+                            if (SpeedRatio > 0)
+                            {
+                                SpeedRatio--;
+                            }
+                            else
+                            {
+                                SpeedRatio = 0;
+                            }
+
+                        }
+                        break;
+                    case "Splus":
+                        {
+                            if (SpeedRatio < 100)
+                            {
+                                SpeedRatio++;
+                            }
+                            else
+                            {
+                                SpeedRatio = 100;
+                            }
+                        }
+                        break;
+                }
+                this.Dispatcher.BeginInvoke(new Action(() => SpeedDesk.Content = SpeedRatio.ToString()+"%"));
+            }
+        }
+        
+    }
+
+
+
+    class IniFile
+    {
+        string Path;
+
+        [DllImport("kernel32")]
+        static extern long WritePrivateProfileString(string Section, string Key, string Value, string FilePath);
+
+        [DllImport("kernel32")]
+        static extern int GetPrivateProfileString(string Section, string Key, string Default, StringBuilder RetVal, int Size, string FilePath);
+        public IniFile(string IniPath)
+        {
+            Path = new FileInfo(IniPath).FullName.ToString();
+        }
+        public string ReadINI(string Section, string Key)
+        {
+            var RetVal = new StringBuilder(255);
+            GetPrivateProfileString(Section, Key, "", RetVal, 255, Path);
+            return RetVal.ToString();
+        }
+        public void WriteINI(string Section, string Key, string Value)
+        {
+            WritePrivateProfileString(Section, Key, Value, Path);
+        }
+        public void DeleteKey(string Section, string Key)
+        {
+            WriteINI(Section, Key, null);
+        }
+        public void DeleteSection(string Section = null)
+        {
+            WriteINI(Section, null, null);
+        }
+        public bool KeyExistsINI(string Section, string Key)
+        {
+            return ReadINI(Section, Key).Length > 0;
+        }
+    }
+}

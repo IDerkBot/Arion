@@ -1,0 +1,24 @@
+<?xml version="1.0" standalone="yes"?>
+<DocumentElement>
+  <User>
+    <Login>Admin</Login>
+    <FullName>Administrator</FullName>
+    <Password>1234</Password>
+    <Level>3</Level>
+    <Enabled>1</Enabled>
+  </User>
+  <User>
+    <Login>Arion</Login>
+    <FullName>Arion</FullName>
+    <Password>sura3568</Password>
+    <Level>999</Level>
+    <Enabled>1</Enabled>
+  </User>
+  <User>
+    <Login>LOGIN1</Login>
+    <FullName>PASS</FullName>
+    <Password>QWER</Password>
+    <Level>2</Level>
+    <Enabled>1</Enabled>
+  </User>
+</DocumentElement>

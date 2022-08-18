@@ -1,0 +1,62 @@
+﻿<Page
+    x:Class="ArionCameraXrayDefender.Views.Pages.DetectorConnectPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ArionCameraXrayDefender.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="DetectorConnectPage"
+    d:DesignHeight="410"
+    d:DesignWidth="410"
+    Style="{StaticResource PageStyle}"
+    mc:Ignorable="d">
+
+    <StackPanel Margin="5" Orientation="Vertical">
+        <Button
+            Margin="5"
+            Click="ButtonBase_OnClick"
+            Content="Snap" />
+        <StackPanel Orientation="Horizontal">
+            <TextBox
+                Name="TbAveraging"
+                Width="100"
+                TextAlignment="Center" />
+            <Button
+                Name="BtnAveraging"
+                Click="BtnAveraging_OnClick"
+                Content="Averaging" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBox
+                Name="TbExposure"
+                Width="100"
+                TextAlignment="Center" />
+            <Button
+                Name="BtnExposure"
+                Click="BtnExposure_OnClick"
+                Content="Exposure" />
+        </StackPanel>
+
+        <Button
+            Name="BtnNewFile"
+            Click="BtnNewFile_OnClick"
+            Content="NewFile" />
+        <StackPanel Orientation="Horizontal">
+            <TextBox
+                Name="TbSaveDCMFolder"
+                Width="100"
+                TextAlignment="Center" />
+            <TextBox
+                Name="TbSaveDCMPath"
+                Width="100"
+                TextAlignment="Center" />
+            <Button
+                Name="BtnSaveDCM"
+                Click="BtnSaveDCM_OnClick"
+                Content="SaveDCM" />
+        </StackPanel>
+
+        <Button Content="Connect" Name="BtnConnect" Click="BtnConnect_OnClick"></Button>
+
+    </StackPanel>
+</Page>

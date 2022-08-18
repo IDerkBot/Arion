@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfProgramInfoDataSource xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>Первая программа</Name>
+    <Angle>30</Angle>
+    <Height>300</Height>
+    <MA>4.5</MA>
+    <KV>100</KV>
+    <Timing>0</Timing>
+    <Count>5</Count>
+  </ProgramInfoDataSource>
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>2. Программа</Name>
+    <Angle>30</Angle>
+    <Height>200</Height>
+    <MA>4.5</MA>
+    <KV>200</KV>
+    <Timing>10</Timing>
+    <Count>10</Count>
+  </ProgramInfoDataSource>
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>3. Программа</Name>
+    <Angle>1</Angle>
+    <Height>200</Height>
+    <MA>10</MA>
+    <KV>30</KV>
+    <Timing>50</Timing>
+    <Count>1</Count>
+  </ProgramInfoDataSource>
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>программа 4</Name>
+    <Angle>0</Angle>
+    <Height>200</Height>
+    <MA>0.2</MA>
+    <KV>20</KV>
+    <Timing>0</Timing>
+    <Count>1</Count>
+  </ProgramInfoDataSource>
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>Программа 5</Name>
+    <Angle>23</Angle>
+    <Height>200</Height>
+    <MA>10</MA>
+    <KV>23</KV>
+    <Timing>23</Timing>
+    <Count>23</Count>
+  </ProgramInfoDataSource>
+  <ProgramInfoDataSource>
+    <ID>0</ID>
+    <Name>Круг</Name>
+    <Angle>360</Angle>
+    <Height>240</Height>
+    <MA>0.6</MA>
+    <KV>115</KV>
+    <Timing>15</Timing>
+    <Count>70</Count>
+  </ProgramInfoDataSource>
+</ArrayOfProgramInfoDataSource>

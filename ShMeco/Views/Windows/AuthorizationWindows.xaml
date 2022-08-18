@@ -1,0 +1,73 @@
+﻿<Window
+    x:Class="ArionCameraXrayDefender.Views.Windows.AuthorizationWindows"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="AuthorizationWindows"
+    Width="420"
+    Height="300"
+    Background="{StaticResource SolidBrightBlue}"
+    ResizeMode="NoResize"
+    Topmost="True"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
+    <Grid>
+        <Border
+            Margin="10"
+            Background="{StaticResource SolidLightBlue}"
+            CornerRadius="3">
+            <Grid>
+                <Button
+                    Width="25"
+                    Height="25"
+                    Margin="10"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Click="BtnClose_OnClick">
+                    <Image
+                        Width="18"
+                        Height="18"
+                        Source="{StaticResource Kind_CloseDrawingImage}" />
+                </Button>
+
+                <Button
+                    Margin="10"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Click="BtnKeyboard_OnClick"
+                    Style="{StaticResource BtnKeyboard}" />
+
+                <Label
+                    Margin="0,38,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Content="Вход"
+                    FontSize="24"
+                    FontWeight="Medium"
+                    Foreground="{StaticResource SolidDarkBlue}" />
+
+                <StackPanel Margin="0,0,0,35" VerticalAlignment="Bottom">
+                    <ComboBox
+                        Name="CbUsers"
+                        Width="330"
+                        Height="35"
+                        DisplayMemberPath="Login"
+                        SelectionChanged="CbUsers_OnSelectionChanged" />
+                    <PasswordBox
+                        Name="PbPassword"
+                        Width="330"
+                        Height="35"
+                        Margin="0,10,0,0"
+                        PasswordChanged="PbPassword_OnPasswordChanged" />
+                    <Button
+                        Width="330"
+                        Margin="0,25,0,0"
+                        Click="BtnEnter_OnClick"
+                        Content="Войти" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
