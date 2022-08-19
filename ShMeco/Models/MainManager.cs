@@ -2,7 +2,6 @@
 using ArionLibrary.Controllers;
 using System.Timers;
 using System.Windows.Controls;
-using Guardian;
 using NLog;
 
 namespace ArionCameraXrayDefender.Models

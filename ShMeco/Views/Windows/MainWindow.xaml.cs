@@ -12,7 +12,6 @@ using NLog;
 using NLog.Config;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Guardian;
 using Microsoft;
 
 namespace ArionCameraXrayDefender.Views.Windows
@@ -34,7 +33,7 @@ namespace ArionCameraXrayDefender.Views.Windows
         #region Window
         public MainWindow()
         {
-            MainManager.Guardian = new STRAZHADAPTER(LogManager.GetLogger("Guardian"));
+            MainManager.Guardian = new STRAZHADAPTER();
             InitializeComponent();
 
             var primaryMonitorArea = SystemParameters.WorkArea;
@@ -142,8 +141,7 @@ namespace ArionCameraXrayDefender.Views.Windows
 
             MainManager.Log.Info("Запуск панели видеокамеры");
             // Окно видеокамеры
-            //VideoFrame.Navigate(new VideoStreamPage());
-            VideoFrame.Navigate(new DetectorConnectPage());
+            VideoFrame.Navigate(new VideoStreamPage());
 
             MainManager.Log.Info("Запуск панели программ");
             // Окно программ

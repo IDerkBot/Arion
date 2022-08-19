@@ -93,10 +93,6 @@
     <Reference Include="NModbus4, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NModbus4.2.1.0\lib\net40\NModbus4.dll</HintPath>
     </Reference>
-    <Reference Include="STRAZH_LIB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\SLib\bin\Debug\STRAZH_LIB.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -291,7 +287,12 @@
   <ItemGroup>
     <Resource Include="Resource\Images\time_icon_m.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\SLib\STRAZH_LIB.csproj">
+      <Project>{b3bfba43-9a21-465c-b8a4-791366db71f7}</Project>
+      <Name>STRAZH_LIB</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Resource\Images\settings_icon_m.png" />
   </ItemGroup>
